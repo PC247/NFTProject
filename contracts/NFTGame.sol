@@ -18,33 +18,49 @@ contract NFTGame is Context{
         _nft = NonFungibleToken(nft);
     }
 
+
+    //PLAY THE GAME
+
     function pseudoRNG() public returns(uint256) {
         nonce++;
         return uint256(keccak256(abi.encodePacked(nonce, msg.sender, blockhash(block.number - 1))));
+    }
+
+    function getReward(uint hReward, uint hProbability) internal returns (uint rwrd){
+        uint _reward = hReward;
+        uint _risk = hProbability;
+
+        uint rnd = pseudoRNG();
+        if(rnd % 100 <= _risk) return _reward;
+        else return 0;
     }
 
     function claimReward(uint256 tokenId) public returns(uint256){
         require(_nft.ownerOf(tokenId) == _msgSender(), "NFTGame: not owner of NFT");
         require(_nft.getApproved(tokenId) == address(this), "NFTGame: NFT not approved, no NFT at stake.");
 
-        uint256 rnd = pseudoRNG() % 100;
-        uint256 proba = _nft.getNftProba(tokenId);
+        uint256 risk = _nft.getNftProba(tokenId);
+        uint256 reward = _nft.getNftProba(tokenId);
 
-        if(rnd <= proba){
-            uint256 newProba = proba * 9 / 10;// TEMPORARY HARD CODED VALUE
-            _nft.updateNftProba(tokenId, newProba);
+        uint256 tokens = getReward(reward, risk);
 
-            uint256 reward = _nft.getNftReward(tokenId);
-            _ft.mint(_msgSender(), reward);
-            _nft.updateNftReward(tokenId, reward++);// TEMPORARY HARD CODED VALUE
-
-            emit SuccesfulClaim(tokenId, reward);
-            return reward;
-        }
-        else{
+        if(tokens == 0){
             _nft.burn(tokenId);
             emit FailedClaim(tokenId);
             return 0;
         }
+
+        uint256 rank = _nft.getNftRank(tokenId);
+        uint256 count = _nft.getNftCount(tokenId);
+
+        tokens += rank * rank * (count/3); // rewards risk taken 
+
+        _nft.updateNftCount(tokenId);
+
+        risk -= risk * count * count * reward / ((10 - count) * 100); 
+        _nft.updateNftProba(tokenId, risk);
+
+        emit SuccesfulClaim(tokenId, reward);
+        return reward;
     }
 }

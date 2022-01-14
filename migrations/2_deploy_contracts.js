@@ -3,6 +3,7 @@ var FungibleToken = artifacts.require("FungibleToken");
 
 var GetNFT = artifacts.require("GetNFT");
 var NFTGame = artifacts.require("NFTGame");
+var NFTMarketplace = artifacts.require("NFTMarketplace")
 
 var ft_symbol = "BNT";
 var ft_name = "BananeToken";
@@ -25,5 +26,7 @@ module.exports = deployer => {
     await deployer.deploy(NFTGame, FungibleToken.address, NonFungibleToken.address);
     await NonFungibleTokenInstance.grantMinterRole(NFTGame.address);
     await FungibleTokenInstance.grantMinterRole(NFTGame.address);
+
+    await deployer.deploy(NFTMarketplace, FungibleToken.address, NonFungibleToken.address);
   });
 };

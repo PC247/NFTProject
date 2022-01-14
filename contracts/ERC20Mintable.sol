@@ -21,6 +21,12 @@ import "@openzeppelin/contracts/utils/Context.sol";
 contract ERC20Mintable is Context, AccessControlEnumerable, ERC20 {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
+    //Gasless tx attributes:
+    mapping (address => uint256) public nonces;
+
+    bytes32 public PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+    bytes32 public DOMAIN_SEPARATOR;
+
     /**
      * @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` to the
      * account that deploys the contract.

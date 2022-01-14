@@ -80,6 +80,7 @@ contract ERC721MintableBurnable is
         // can be burned (destroyed), so we need a separate counter.
         uint256 tokenId = _tokenIdTracker.current();
         _mint(to, tokenId);
+        
         _tokenIdTracker.increment();
         return tokenId;
     }
